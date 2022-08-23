@@ -302,7 +302,7 @@ class Automata{
       s.transitionTo = s.transitionTo.map( t => this.transitions.find(t2 => t2.id==t))
     });
 
-    automata.setState(automata.states[0]);
+    this.setState(this.states[0]);
 
   }
 
