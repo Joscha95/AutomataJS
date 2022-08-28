@@ -241,7 +241,7 @@ class Automata{
           name: s.name,
           id : s.id,
           duration : s.duration,
-          position : s.position,
+          position : {x:s.position.x,y:s.position.y},
           'transitionTo' : s.transitionTo.map(t => t.id),
           'transitionFrom' : s.transitionFrom.map(t => t.id)
         }
@@ -272,7 +272,7 @@ class Automata{
 
     let n;
     objects.states.forEach((item, i) => {
-      n = new State(item.name, item.position, this.isEditor, item.id);
+      n = new State(item.name, this.isEditor ? new Point(item.position.x,item.position.y) : null , this.isEditor, item.id);
 
       n.duration = item.duration;
       n.transitionFrom = item.transitionFrom;

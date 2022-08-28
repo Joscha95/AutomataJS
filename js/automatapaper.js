@@ -23,3 +23,8 @@ if (isEditor) {
 	view.pause();
 	view.update();
 }
+
+let ex;
+
+fetch('test.json').then( res => res.json()).then( res => ex = JSON.parse(res));
+
