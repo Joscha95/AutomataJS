@@ -1,0 +1,4 @@
+- pan
+- inspector zum element
+- triggerTransition
+- esc closes Tab
