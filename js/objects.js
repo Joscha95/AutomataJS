@@ -1,253 +1,156 @@
 const a_settings = {
-  focusColor: '#eff4ef',
-  strokeColor: 'black',
-  fillColor: 'white',
-  activeColor: '#bac308'
+  selectColor: '#919191',
+  strokeColor: '#878787',
+  fillColor: '#333333',
+  activeColor: '#ffa800',
+  textColor: '#d9d9d9',
+  triggeredColor: '#2f8f58',
+  strokeWidth: 3,
+  strokeWidthActive: 5,
 }
 
 class BaseAutomataItem {
-  constructor(name){
+  constructor(isEditor, name, id){
     this.name = name;
-    this.id = 'AID_'+Date.now();
-    this.elapsedTime=0;
-    this.duration=1000;
-    this.progress=0;
-    this.deleted=false;
-
-    this.title = new PointText({
-    	content: this.name,
-    	justification: 'center',
-    	fontSize: 10
-    });
-
-    view.update();
-  }
-
-
-  update() {
-    this.elapsedTime++;
-    this.progress=Math.min(this.elapsedTime/this.duration,1);
-  }
-
-
-  updateName(newname){
-    this.name=newname;
-    this.title.content=this.name;
-    view.update();
-  }
-
-  activate(){
-    this.path.strokeColor = a_settings.activeColor;
-    this.path.dashArray = [10, 10];
-    view.update();
-  };
-
-  reset(){
-    this.elapsedTime=0;
-    this.progress=0;
-    this.path.strokeColor='black';
-    this.path.dashArray=[];
-    view.update();
-  }
-}
-
-class State extends BaseAutomataItem {
-  constructor(name,position){
-    super(name);
-    this.position = position;
-    this.transitionTo=[];
-    this.transitionFrom=[];
-
-    this.path = new Path.Circle({
-  		radius: 50,
-      strokeColor: a_settings.strokeColor,
-      fillColor: a_settings.fillColor
-  	});
-
-    this.group = new Group([this.path,this.title]);
-    this.group.position = this.position;
-    this.group.name= this.id;
-
-    view.update();
-  }
-
-  nextTransition(){
-    return this.transitionTo.find( t => t.triggered);
-  }
-
-
-  focus(){
-    this.path.fillColor = a_settings.focusColor;
-    view.update();
-  }
-
-  unfocus(){
-    this.path.fillColor = a_settings.fillColor;
-    view.update();
-  }
-
-  updatePosition(delta=new Point(0,0)){
-    this.position = this.position.add(delta);
-
-    this.group.position = this.position;
-    this.transitionTo.forEach((item) => {
-      item.updatePosition();
-    });
-    this.transitionFrom.forEach((item) => {
-      item.updatePosition();
-    });
-
-    view.update();
-
-  }
-
-  delete(){
-    this.deleted=true;
-    this.transitionTo.forEach((item) => {
-      item.delete();
-    });
-    this.transitionFrom.forEach((item) => {
-      item.delete();
-    });
-    this.group.remove();
-    view.update();
-
-  }
-}
-
-
-
-class State_x {
-  constructor(name,position){
-    this.name = name;
-    this.id = 'S_'+Date.now();
-    this.position = position;
-    this.elapsedTime=0;
-    this.transitionTo=[];
-    this.transitionFrom=[];
-    this.duration=1000;
-    this.progress=0;
-    this.deleted=false;
-
-    this.path = new Path.Circle({
-  		radius: 50,
-      strokeColor: a_settings.strokeColor,
-      fillColor: a_settings.fillColor
-  	});
-
-    this.title = new PointText({
-    	content: this.name,
-    	justification: 'center',
-    	fontSize: 10
-    });
-
-    this.group = new Group([this.path,this.title]);
-    this.group.position = this.position;
-    this.group.name= this.id;
-
-    view.update();
-
-  }
-
-
-  update() {
-    this.elapsedTime++;
-    this.path.dashOffset--;
-    this.progress=Math.min(this.elapsedTime/this.duration,1);
-  }
-
-
-  updateName(newname){
-    this.name=newname;
-    this.title.content=this.name;
-    view.update();
-  }
-
-  nextTransition(){
-    return this.transitionTo.find( t => t.triggered);
-  }
-
-
-  focus(){
-    this.path.fillColor = a_settings.focusColor;
-    view.update();
-  }
-
-  unfocus(){
-    this.path.fillColor = a_settings.fillColor;
-    view.update();
-
-  }
-
-  activate(){
-    this.path.strokeColor = a_settings.activeColor;
-    this.path.dashArray = [10, 10];
-    view.update();
-
-  };
-
-  reset(){
-    this.elapsedTime=0;
-    this.progress=0;
-    this.path.strokeColor='black';
-    this.path.dashArray=[];
-    view.update();
-
-  }
-
-  updatePosition(delta=new Point(0,0)){
-    this.position = this.position.add(delta);
-
-    this.group.position = this.position;
-    this.transitionTo.forEach((item) => {
-      item.updatePosition();
-    });
-    this.transitionFrom.forEach((item) => {
-      item.updatePosition();
-    });
-
-    view.update();
-
-  }
-
-  delete(){
-    this.deleted=true;
-    this.transitionTo.forEach((item) => {
-      item.delete();
-    });
-    this.transitionFrom.forEach((item) => {
-      item.delete();
-    });
-    this.group.remove();
-    view.update();
-
-  }
-}
-
-class Transition {
-
-  constructor(name,startState){
-    this.name = name;
-    this.id = 'T_'+Date.now();
-    this.startState = startState;
-    this.endState = null;
-    this.triggered = false;
+    this.id = id;
     this.elapsedTime = 0;
-
-    this.duration = 500;
+    this.duration = 1000;
     this.progress = 0;
+    this.deleted = false;
+    this.isEditor = isEditor;
 
-    this.path = new Path(this.startState.position,this.startState.position);
-    this.path.strokeColor = a_settings.strokeColor;
-
-    this.arrow = createArrow(startState.position,startState.position);
+    if(!this.isEditor) return;
 
     this.title = new PointText({
     	content: this.name,
     	justification: 'center',
     	fontSize: 10,
-      color: a_settings.strokeColor
+      fillColor: a_settings.textColor
     });
+
+    view.update();
+  }
+
+
+  update() {
+    this.elapsedTime++;
+    this.progress = Math.min(this.elapsedTime/this.duration,1);
+  }
+
+
+  updateName(newname){
+    this.name = newname;
+    this.title.content = this.name;
+    view.update();
+  }
+
+  activate(){
+    this.path.strokeColor = a_settings.activeColor;
+    view.update();
+  };
+
+  reset(){
+    this.elapsedTime=0;
+    this.progress=0;
+
+    if(!this.isEditor) return;
+
+    this.path.strokeColor = this.triggered ? a_settings.triggeredColor : a_settings.strokeColor;
+    view.update();
+  }
+}
+
+class State extends BaseAutomataItem {
+  constructor(name, position, isEditor, id = null){
+    super(isEditor, name, id || 'AID_'+Date.now());
+    this.position = position;
+    this.transitionTo = [];
+    this.transitionFrom = [];
+
+    if(!this.isEditor) return;
+
+    this.path = new Path.Circle({
+  		radius: 50,
+      strokeColor: a_settings.strokeColor,
+      fillColor: a_settings.fillColor,
+      strokeWidth: a_settings.strokeWidth
+  	});
+
+    this.group = new Group([this.path,this.title]);
+    this.group.position = this.position;
+    this.group.name = this.id;
+
+    view.update();
+  }
+
+  nextTransition(){
+    return this.transitionTo.find( t => t.triggered);
+  }
+
+  focus(){
+    this.path.fillColor = a_settings.selectColor;
+    this.title.fillColor = 'black';
+    view.update();
+  }
+
+  unfocus(){
+    this.path.fillColor = a_settings.fillColor;
+    this.title.fillColor = a_settings.strokeColor;
+    view.update();
+  }
+
+  updatePosition(delta = new Point(0,0)){
+    this.position = this.position.add(delta);
+
+    this.group.position = this.position;
+    this.transitionTo.forEach((item) => {
+      item.updatePosition();
+    });
+    this.transitionFrom.forEach((item) => {
+      item.updatePosition();
+    });
+
+    view.update();
+
+  }
+
+  delete(){
+    this.deleted = true;
+    this.transitionTo.forEach((item) => {
+      item.delete();
+    });
+    this.transitionFrom.forEach((item) => {
+      item.delete();
+    });
+
+    if(!this.isEditor) return;
+    this.group.remove();
+    view.update();
+
+  }
+}
+
+class Transition extends BaseAutomataItem {
+
+  constructor(name,startState,isEditor,id = null){
+    super(isEditor,name, id || 'AID_'+Date.now());
+    this.startState = startState;
+    this.endState = null;
+    this.triggered = false;
+
+    if(!this.isEditor) return;
+
+    this.isReverse = false;
+
+    this.path = new Path(this.startState.position,this.startState.position);
+    this.path.strokeColor = a_settings.strokeColor;
+    this.path.strokeWidth = a_settings.strokeWidth;
+
+    this.arrow = createArrow(startState.position,startState.position);
+    this.arrow.strokeColor = this.path.strokeColor;
+
+    //this.title.shadowColor = 'black';
+    //this.title.shadowBlur = 2;
 
     this.group = new Group([this.path,this.title]);
     this.group.name = this.id;
@@ -255,61 +158,55 @@ class Transition {
   }
 
 
-  activate(){
-    this.path.strokeColor=a_settings.activeColor;
-    this.path.dashArray=[10, 10];
-    view.update();
-
-  }
-
-
-
-  updateName(newname){
-    this.name=newname;
-    this.title.content=this.name;
-    view.update();
-
-  }
-
   focus(){
-    this.path.strokeColor = a_settings.focusColor;
+    this.path.strokeColor = a_settings.textColor;
+    this.arrow.strokeColor = this.path.strokeColor;
     view.update();
-
   };
+
   unfocus(){
-    this.path.strokeColor = a_settings.strokeColor;
+    this.path.strokeColor = this.triggered ? a_settings.triggeredColor : a_settings.strokeColor;
+    this.arrow.strokeColor = this.path.strokeColor;
     view.update();
-
   };
 
-  reset(){
-    this.elapsedTime = 0;
-    this.progress = 0;
-    this.path.strokeColor = a_settings.strokeColor;
-    this.path.dashArray = [];
-  }
+  setEndState(state){
+    this.endState = state;
 
-  update(){
-    this.elapsedTime++;
-    //this.path.dashOffset--;
-    this.progress=Math.min(this.elapsedTime/this.duration,1);
+    const tr = this.endState.transitionTo.find( t => t.endState == this.startState);
+
+    if(tr) this.isReverse = tr.isReverse = true;
   }
 
   updatePosition(mousePos=null){
     this.arrow.remove();
-    view.update();
 
     if (this.endState==null && mousePos) {
       this.path.segments[0].point = this.startState.position;
       this.path.segments[1].point = mousePos;
       this.arrow = createArrow(this.startState.position,mousePos);
-    }else {
+    } else if(this.isReverse) {
+      const startPos = this.startState.position;
+      const endPos = this.endState.position;
+      const vector = endPos.subtract(startPos);
+
+      vector.length = 20;
+
+      this.path.segments[0].point = this.startState.position.add(vector.rotate(90));
+      this.path.segments[1].point = this.endState.position.add(vector.rotate(90));
+      this.arrow = createArrow(this.startState.position,this.path.getIntersections(this.endState.path)[0] ? this.path.getIntersections(this.endState.path)[0].point : this.startState.position);
+    } else {
       this.path.segments[0].point = this.startState.position;
       this.path.segments[1].point = this.endState.position;
-      this.arrow = createArrow(this.startState.position,this.path.getIntersections(this.endState.path)[0].point);
+      this.arrow = createArrow(this.startState.position,this.path.getIntersections(this.endState.path)[0] ? this.path.getIntersections(this.endState.path)[0].point : this.startState.position);
     }
+
+
     this.arrow.sendToBack();
+    this.arrow.strokeColor = this.path.strokeColor;
     this.title.position = this.path.segments[1].point.add(this.path.segments[0].point.subtract(this.path.segments[1].point).divide(2));
+    this.arrow.strokeWidth = a_settings.strokeWidth;
+    view.update();
   };
 
   delete(){
@@ -328,6 +225,8 @@ class Transition {
       }
     }
 
+    if(!this.isEditor) return;
+
     this.group.remove();
     this.arrow.remove();
 
@@ -336,8 +235,8 @@ class Transition {
 }
 
 function createArrow(startPos,endPos) {
-  const vector=endPos.subtract(startPos);
-  vector.length=10;
+  const vector = endPos.subtract(startPos);
+  vector.length = 15;
   const arrowPath = new Path([
     endPos.add(vector.rotate(135)),
     endPos,
@@ -347,24 +246,97 @@ function createArrow(startPos,endPos) {
 }
 
 class Automata{
-  constructor(){
-    this.activeState = new State('init',new Point(50,50));
-    this.activeState.activate();
+  constructor(isEditor){
+    this.isEditor = isEditor;
+    this.activeState = new State('init',this.isEditor ? new Point(50,50) : null, this.isEditor);
+
     this.activeTransition = null;
     this.states = [this.activeState];
     this.transitions = [];
+
+    if(!this.isEditor) return;
+    this.activeState.activate();
+
     this.inspector=new Inspector();
     this.inspector.setSelectedEl(this.activeState);
 
     this.inspector.deleteElement = (el)=>{this.deleteElement(el)};
 
-    this.isEditor = true;
-
     this.tool = null;
 
-    if(this.isEditor) this.setUpInteractions();
+    this.setUpInteractions();
 
-    console.log(true,'done');
+  }
+
+  export(){
+    const a_export = {
+      states: this.states.map((s) => {
+        return {
+          name: s.name,
+          id : s.id,
+          duration : s.duration,
+          position : {x:s.position.x,y:s.position.y},
+          'transitionTo' : s.transitionTo.map(t => t.id),
+          'transitionFrom' : s.transitionFrom.map(t => t.id)
+        }
+      }),
+      transitions: this.transitions.map((t) => {
+        return {
+          name: t.name,
+          id : t.id,
+          duration : t.duration,
+          triggered : t.triggered,
+          startState : t.startState.id,
+          endState : t.endState.id
+        }
+      }),
+
+    }
+
+    return a_export;
+
+  }
+
+  load(objects){
+
+    project.clear();
+    this.states = [];
+    this.transitions = [];
+    this.inspector.setSelectedEl();
+
+    let n;
+    objects.states.forEach((item, i) => {
+      n = new State(item.name, this.isEditor ? new Point(item.position.x,item.position.y) : null , this.isEditor, item.id);
+
+      n.duration = item.duration;
+      n.transitionFrom = item.transitionFrom;
+      n.transitionTo = item.transitionTo;
+
+      this.states.push(n)
+    });
+
+
+    objects.transitions.forEach((item, i) => {
+
+      const startState = this.states.find(s => s.id == item.startState);
+      const endState = this.states.find(s => s.id == item.endState);
+
+      n = new Transition(item.name, startState, this.isEditor, item.id);
+      n.triggered = item.triggered;
+      n.setEndState(endState);
+      n.duration = item.duration;
+
+      this.transitions.push(n);
+
+      n.updatePosition();
+    });
+
+    this.states.forEach((s, i) => {
+      s.transitionFrom = s.transitionFrom.map( t => this.transitions.find(t2 => t2.id==t))
+      s.transitionTo = s.transitionTo.map( t => this.transitions.find(t2 => t2.id==t))
+    });
+
+    this.setState(this.states[0]);
 
   }
 
@@ -401,7 +373,7 @@ class Automata{
 
     	if (!hitResult){
         if (interactions.shiftLeftclick(event)) {
-          this.states.push(new State('State',event.point));
+          this.states.push(new State('State',event.point,this.isEditor));
         }
 
         return;
@@ -436,7 +408,7 @@ class Automata{
           return;
         }
         selectedObject.transitionFrom.push(newTransition);
-        newTransition.endState=selectedObject;
+        newTransition.setEndState(selectedObject);
         this.transitions.push(newTransition);
         newTransition=null;
         selectedObject.updatePosition();
@@ -445,7 +417,7 @@ class Automata{
 
 
       if (interactions.rightclick(event) && !newTransition && selectedObject.constructor.name==='State') {
-        newTransition=new Transition('Transition',selectedObject);
+        newTransition=new Transition('Transition',selectedObject,this.isEditor);
         selectedObject.transitionTo.push(newTransition);
       }
     }
@@ -454,6 +426,7 @@ class Automata{
       if (selectedObject && interactions.leftclick(event) && selectedObject.constructor.name==='State') {
         selectedObject.updatePosition(event.delta);
       }
+
     }
 
     this.tool.onMouseMove = (event) => {
@@ -482,8 +455,11 @@ class Automata{
         this.states.splice(ind,1);
     }else if (type==='Transition') {
       const ind = this.transitions.findIndex(t => t.id===el.id);
-      if (ind>=0)
+      if (ind>=0) {
         this.transitions.splice(ind,1);
+        const revTr = this.transitions.find( t => t.endState == el.startState && t.startState == el.endState );
+        if(revTr) revTr.isReverse = false;
+      }
     }
 
     if (this.activeState.id===el.id) {
@@ -522,6 +498,8 @@ class Automata{
         this.setState(this.activeTransition.endState);
         this.setTransition(null);
 
+        if(!this.isEditor) return;
+
         view.update();
 
         return;
@@ -533,6 +511,9 @@ class Automata{
 
       if (this.activeState.progress===1 && this.activeState.transitionTo[0] && this.activeState.nextTransition()) {
         this.setTransition(this.activeState.nextTransition());
+
+        if(!this.isEditor) return;
+
         view.update();
 
         return;
@@ -541,6 +522,7 @@ class Automata{
       this.activeState.update();
     }
 
+    if(!this.isEditor) return;
     this.inspector.updateTime();
   }
 }
@@ -553,6 +535,10 @@ class Inspector {
     this.parentDom.style.top = 0;
     this.parentDom.style.right = 0;
     this.parentDom.style.padding = '10px';
+    this.parentDom.style.backgroundColor = '#303030';
+    this.parentDom.style.borderRadius = '10px';
+
+    this.parentDom.innerHTML+="<style>#inspector ul,li{list-style: none;padding:0;}#inspector li{height:30px;display: flex;position: relative;align-items: center;}#inspector li > *{flex:1;}#inspector li > *:first-of-type{padding-right: 5px;}#inspector{position: absolute;top:0;right:0;padding:10px;background-color: '#303030';border-radius: 10px;}</style>";
 
     this.deleteElement=deleteEl;
     this.elname = this.parentDom.querySelector("input[name='statename']");
@@ -568,7 +554,13 @@ class Inspector {
     }
 
     this.eltriggered.onchange = (e) =>{
-      this.selectedel.triggered=e.target.checked;
+
+      if(this.selectedel.constructor.name != 'Transition') return;
+      this.selectedel.triggered = e.target.checked;
+
+      this.selectedel.path.strokeColor = this.selectedel.triggered ? a_settings.triggeredColor : a_settings.strokeColor ;
+      this.selectedel.arrow.strokeColor = this.selectedel.path.strokeColor;
+      view.update();
     }
 
     this.elname.onkeyup=(e)=>{
@@ -606,9 +598,9 @@ class Inspector {
     this.parentDom.style.display = 'block';
     this.parentDom.parentNode.style.position='relative';
 
-
-
     this.eltriggered.checked = el.triggered;
+
+    this.eltriggered.parentNode.style.display = this.selectedel.constructor.name == 'Transition' ? 'block' : 'none';
 
     view.update();
 

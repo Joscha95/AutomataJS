@@ -8,7 +8,6 @@
   <body>
     <canvas id="canvas" resize></canvas>
     <div id="inspector">
-      <h3>Inspector</h3>
       <ul>
         <li>
           <label for="statename">Name </label>
@@ -28,7 +27,6 @@
     </div>
   </body>
   <footer>
-    <script type="text/javascript" src="https://unpkg.com/acorn"></script>
     <script src="js/paper-full.min.js" type="text/javascript"></script>
     <script src="js/objects.js?v=<?=filemtime('js/objects.js')?>" type="text/javascript" canvas="canvas"></script>
     <script src="js/automatapaper.js?v=<?=filemtime('js/automatapaper.js')?>" type="text/javascript"  canvas="canvas"></script>

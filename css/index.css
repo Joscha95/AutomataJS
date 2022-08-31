@@ -3,6 +3,7 @@ body {
     margin: 0;
     overflow: hidden;
     height: 100%;
+    background-color: black;
 }
 
 /* Scale canvas with resize attribute to full size */
@@ -21,30 +22,31 @@ h3{
   text-align: center;
 }
 
-ul,li{
+#inspector ul,li{
   list-style: none;
   padding:0;
 }
 
-li{
+#inspector li{
   height:30px;
   display: flex;
   position: relative;
   align-items: center;
 }
 
-li > *{
+#inspector li > *{
   flex:1;
 }
-li > *:first-of-type{
+
+#inspector li > *:first-of-type{
   padding-right: 5px;
 }
 
 #inspector{
-  position: fixed;
+  position: absolute;
   top:0;
   right:0;
   padding:10px;
-  background-color: rgb(242, 242, 242);
+  background-color: '#303030';
   border-radius: 10px;
 }

@@ -1,0 +1,1 @@
+#inspector ul,li{list-style: none;padding:0;}#inspector li{height:30px;display: flex;position: relative;align-items: center;}#inspector li > *{flex:1;}#inspector li > *:first-of-type{padding-right: 5px;}#inspector{position: absolute;top:0;right:0;padding:10px;background-color: '#303030';border-radius: 10px;}
