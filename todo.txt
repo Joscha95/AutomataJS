@@ -1,0 +1,5 @@
+- pan
+- inspector zum element
+- triggerTransition
+- esc closes Tab
+- recreate tab button
