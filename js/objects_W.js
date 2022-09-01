@@ -84,7 +84,7 @@ class State extends BaseAutomataItem {
   }
 
   nextTransition(){
-    return this.transitionTo.find( t => t.triggered);
+    return this.transitionTo.find( t => t.triggered || t.triggerOnce);
   }
 
   focus(){
@@ -137,6 +137,7 @@ class Transition extends BaseAutomataItem {
     this.startState = startState;
     this.endState = null;
     this.triggered = false;
+    this.triggerOnce = false;
 
     if(!this.isEditor) return;
 
@@ -172,6 +173,7 @@ class Transition extends BaseAutomataItem {
 
   setEndState(state){
     this.endState = state;
+
 
     const tr = this.endState.transitionTo.find( t => t.endState == this.startState);
 
@@ -409,6 +411,7 @@ class Automata{
         }
         selectedObject.transitionFrom.push(newTransition);
         newTransition.setEndState(selectedObject);
+        newTransition.updateName('To'+selectedObject.name);
         this.transitions.push(newTransition);
         newTransition=null;
         selectedObject.updatePosition();
@@ -425,6 +428,10 @@ class Automata{
     this.tool.onMouseDrag = (event) => {
       if (selectedObject && interactions.leftclick(event) && selectedObject.constructor.name==='State') {
         selectedObject.updatePosition(event.delta);
+      } else {
+        var pan_offset = event.point.subtract(event.downPoint);
+        view.center = view.center.subtract(pan_offset);
+        view.update();
       }
 
     }
@@ -475,7 +482,7 @@ class Automata{
 
   forceState(state){
     this.activeState.reset();
-    this.activeState=state;
+    this.activeState = state;
     this.activeState.activate();
     this.setTransition(null);
   }
@@ -488,6 +495,10 @@ class Automata{
     this.activeTransition=transition;
     if (this.activeTransition)
       this.activeTransition.activate();
+  }
+
+  triggerTransitionOnce(transition){
+    transition.triggerOnce = true;
   }
 
   update(){
@@ -509,7 +520,8 @@ class Automata{
 
     } else {
 
-      if (this.activeState.progress===1 && this.activeState.transitionTo[0] && this.activeState.nextTransition()) {
+      if (this.activeState.progress === 1 && this.activeState.transitionTo[0] && this.activeState.nextTransition()) {
+
         this.setTransition(this.activeState.nextTransition());
 
         if(!this.isEditor) return;
@@ -521,6 +533,10 @@ class Automata{
 
       this.activeState.update();
     }
+
+    this.transitions.forEach((item) => {
+      item.triggerOnce = false;
+    });
 
     if(!this.isEditor) return;
     this.inspector.updateTime();
