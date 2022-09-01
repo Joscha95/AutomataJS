@@ -2,6 +2,11 @@
 - esc closes Tab
 - save onChange
 
+Errors
+- when dragging transition with right mouse pressed -> prevent updatePosition of element, only start transition
+- loading json failed 'cannot read property position of undefined)
+- isReversed not saved properly (at all)
+
 --------DONE
 - recreate tab button
 - triggerTransition
