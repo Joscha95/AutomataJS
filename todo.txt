@@ -1,14 +1,16 @@
 - inspector zum element
 - esc closes Tab
 - save onChange
-- default length to 60
+
 
 Errors
 - when dragging transition with right mouse pressed -> prevent updatePosition of element, only start transition
-- loading json failed 'cannot read property position of undefined)
-- isReversed not saved properly (at all)
+- loading json failed 'cannot read property position of undefined) (maybe due to old json format)
+
 
 --------DONE
 - recreate tab button
 - triggerTransition
 - pan
+- default length to 60
+- isReversed not saved properly (at all)
