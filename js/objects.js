@@ -14,7 +14,7 @@ class BaseAutomataItem {
     this.name = name;
     this.id = id;
     this.elapsedTime = 0;
-    this.duration = 1000;
+    this.duration = 1;
     this.progress = 0;
     this.deleted = false;
     this.isEditor = isEditor;
@@ -174,7 +174,6 @@ class Transition extends BaseAutomataItem {
   setEndState(state){
     this.endState = state;
 
-
     const tr = this.endState.transitionTo.find( t => t.endState == this.startState);
 
     if(tr) this.isReverse = tr.isReverse = true;
@@ -288,6 +287,7 @@ class Automata{
           id : t.id,
           duration : t.duration,
           triggered : t.triggered,
+          isReverse : t.isReverse,
           startState : t.startState.id,
           endState : t.endState.id
         }
@@ -325,6 +325,7 @@ class Automata{
 
       n = new Transition(item.name, startState, this.isEditor, item.id);
       n.triggered = item.triggered;
+      n.isReverse = item.isReverse;
       n.setEndState(endState);
       n.duration = item.duration;
 
