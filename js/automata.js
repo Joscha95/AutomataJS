@@ -254,11 +254,17 @@ class Automata{
     this.activeTransition = null;
     this.states = [this.activeState];
     this.transitions = [];
+    this.changed = false;
+    this.onChanged = () => {};
+
+    this.onStateChanged = () => {};
 
     if(!this.isEditor) return;
     this.activeState.activate();
 
-    this.inspector=new Inspector();
+    this.elementDragged = false;
+
+    this.inspector = new Inspector();
     this.inspector.setSelectedEl(this.activeState);
 
     this.inspector.deleteElement = (el)=>{this.deleteElement(el)};
@@ -377,6 +383,7 @@ class Automata{
     	if (!hitResult){
         if (interactions.shiftLeftclick(event)) {
           this.states.push(new State('State',event.point,this.isEditor));
+          this.changed = true;
         }
 
         return;
@@ -415,6 +422,7 @@ class Automata{
         newTransition.updateName('To'+selectedObject.name);
         this.transitions.push(newTransition);
         newTransition=null;
+        this.changed = true;
         selectedObject.updatePosition();
         return;
       }
@@ -429,6 +437,7 @@ class Automata{
     this.tool.onMouseDrag = (event) => {
       if (selectedObject && interactions.leftclick(event) && selectedObject.constructor.name==='State') {
         selectedObject.updatePosition(event.delta);
+        this.elementDragged = true;
       } else {
         var pan_offset = event.point.subtract(event.downPoint);
         view.center = view.center.subtract(pan_offset);
@@ -440,6 +449,13 @@ class Automata{
     this.tool.onMouseMove = (event) => {
       if (newTransition) {
         newTransition.updatePosition(event.point);
+      }
+    }
+
+    this.tool.onMouseUp = (event) => {
+      if (this.elementDragged) {
+        this.changed = true;
+        this.elementDragged = false;
       }
     }
   }
@@ -459,8 +475,18 @@ class Automata{
 
     if (type==='State') {
       const ind = this.states.findIndex(t => t.id===el.id);
-      if (ind>=0)
+      if (ind >= 0){
         this.states.splice(ind,1);
+
+        [...el.transitionTo,...el.transitionFrom].forEach((item, i) => {
+          const ind = this.transitions.findIndex(t => t.id===item.id);
+          if (ind>=0) {
+            this.transitions.splice(ind,1);
+          }
+        });
+
+      }
+
     }else if (type==='Transition') {
       const ind = this.transitions.findIndex(t => t.id===el.id);
       if (ind>=0) {
@@ -477,6 +503,7 @@ class Automata{
     }
 
     el.delete();
+    this.changed = true;
   }
 
 
@@ -509,6 +536,7 @@ class Automata{
         this.activeState.reset();
         this.setState(this.activeTransition.endState);
         this.setTransition(null);
+        this.onStateChanged();
 
         if(!this.isEditor) return;
 
@@ -524,6 +552,7 @@ class Automata{
       if (this.activeState.progress === 1 && this.activeState.transitionTo[0] && this.activeState.nextTransition()) {
 
         this.setTransition(this.activeState.nextTransition());
+        this.onStateChanged();
 
         if(!this.isEditor) return;
 
@@ -541,29 +570,52 @@ class Automata{
 
     if(!this.isEditor) return;
     this.inspector.updateTime();
+
+    if(this.changed){
+        this.onChanged();
+        this.changed = false;
+      }
   }
 }
 
 class Inspector {
-  constructor(deleteEl){
-    this.parentDom = document.querySelector('#inspector');
+  constructor(){
+    this.domEl = this.createDOMElement();
 
-    this.parentDom.style.position = 'absolute';
-    this.parentDom.style.top = 0;
-    this.parentDom.style.right = 0;
-    this.parentDom.style.padding = '10px';
-    this.parentDom.style.backgroundColor = '#303030';
-    this.parentDom.style.borderRadius = '10px';
+    this.changed = false;
 
-    this.parentDom.innerHTML+="<style>#inspector ul,li{list-style: none;padding:0;}#inspector li{height:30px;display: flex;position: relative;align-items: center;}#inspector li > *{flex:1;}#inspector li > *:first-of-type{padding-right: 5px;}#inspector{position: absolute;top:0;right:0;padding:10px;background-color: '#303030';border-radius: 10px;}</style>";
+    this.deleteElement=()=>{};
 
-    this.deleteElement=deleteEl;
-    this.elname = this.parentDom.querySelector("input[name='statename']");
-    this.elprogress = this.parentDom.querySelector('#el_progress');
-    this.elelapsed = this.parentDom.querySelector('#el_elapsed');
-    this.elduration = this.parentDom.querySelector("input[name='duration']");
-    this.eltriggered = this.parentDom.querySelector("input[name='triggered']");
-    this.eldeletebtn = this.parentDom.querySelector("button[name='delete']");
+    const _elname = this.createInput('Name','text');
+    const _eldur = this.createInput('Duration','number');
+    const _eltrig = this.createInput('Triggered','checkbox');
+
+    this.elname = _elname.querySelector('input');
+    this.elduration = _eldur.querySelector('input');
+    this.eltriggered = _eltrig.querySelector('input');
+
+    this.elprogress = document.createElement('SPAN');
+    this.elelapsed = document.createElement('SPAN');
+    this.eldeletebtn = document.createElement('BUTTON');
+    this.eldeletebtn.name = 'delete';
+    this.eldeletebtn.innerHTML = 'Delete';
+
+    const tEl = document.createElement('DIV');
+    tEl.classList.add('inspector_row')
+    tEl.append(this.elprogress,this.elelapsed);
+
+    const dEl = document.createElement('DIV');
+    dEl.classList.add('inspector_row')
+    dEl.append(this.eldeletebtn);
+
+    this.domEl.append(
+      _elname,
+      _eldur,
+      _eltrig,
+      tEl,
+      dEl
+    )
+
     this.selectedel=null;
 
     this.eldeletebtn.onmousedown=()=>{
@@ -578,16 +630,19 @@ class Inspector {
       this.selectedel.path.strokeColor = this.selectedel.triggered ? a_settings.triggeredColor : a_settings.strokeColor ;
       this.selectedel.arrow.strokeColor = this.selectedel.path.strokeColor;
       view.update();
+      this.changed = true;
     }
 
-    this.elname.onkeyup=(e)=>{
+    this.elname.onkeyup = (e)=>{
       if(!this.selectedel) return;
       this.selectedel.updateName(e.target.value);
+      this.changed = true;
     }
 
-    this.elduration.onkeyup=this.elduration.onmouseup=(e)=>{
+    this.elduration.onkeyup = this.elduration.onmouseup=(e)=>{
       if(!this.selectedel) return;
       this.selectedel.duration=e.target.value;
+      this.changed = true;
     }
   }
 
@@ -607,19 +662,69 @@ class Inspector {
       this.elduration.value=0;
       this.elprogress.innerHTML= '';
       this.elelapsed.innerHTML= '';
-      this.parentDom.style.display = 'none';
+      this.domEl.style.display = 'none';
       return;
     }
     this.elname.value=el.name;
     this.elduration.value=el.duration;
-    this.parentDom.style.display = 'block';
-    this.parentDom.parentNode.style.position='relative';
+
+    this.domEl.style.display = 'block';
+    this.eltriggered.parentNode.style.display = this.selectedel.constructor.name == 'Transition' ? 'block' : 'none';
+
 
     this.eltriggered.checked = el.triggered;
 
-    this.eltriggered.parentNode.style.display = this.selectedel.constructor.name == 'Transition' ? 'block' : 'none';
-
     view.update();
+  }
 
+  createDOMElement(){
+    const el = document.createElement('DIV');
+    el.id = "inspector";
+
+    const style = document.createElement('Style');
+    style.innerText = `
+    #inspector .inspector_row{
+      height:30px;
+      display: flex;
+      position: relative;
+      align-items: center;
+    }
+    #inspector .inspector_row > *{
+      flex:1;
+    }
+    #inspector .inspector_row > *:first-of-type{
+      padding-right: 5px;
+    }
+    #inspector{
+      position: absolute;
+      top:0;
+      right:0;
+      padding:10px;
+      background-color: #303030;
+      border-radius: 10px;
+    }`;
+
+    document.head.appendChild(style);
+
+    return el;
+  }
+
+  createInput(name, type ){
+    const wrap = document.createElement('DIV');
+    wrap.classList.add('inspector_row');
+    const label = document.createElement('LABEL');
+    const input = document.createElement('INPUT');
+
+    const slug = name.toLocaleLowerCase().replace(' ','-');
+
+    label.innerHTML = name;
+    label.for = slug;
+
+    input.type = type;
+    input.name = slug;
+
+    wrap.append(label,input);
+
+    return wrap;
   }
 }

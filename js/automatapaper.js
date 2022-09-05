@@ -7,7 +7,19 @@ if (isEditor) {
 	paper.setup('canvas');
 }
 
-const automata = new Automata(isEditor);
+const automata = new Automata(isEditor,document.body);
+
+automata.onStateChanged=()=>{
+	console.log(automata.activeState.name,automata.activeTransition ? automata.activeTransition.name : '');
+}
+
+automata.onChanged = () => {
+	console.log(true);
+}
+
+document.body.append(automata.inspector.domEl);
+automata.inspector.domEl.parentNode.style.position='relative';
+
 
 render();
 

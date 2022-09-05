@@ -7,7 +7,7 @@
   </head>
   <body>
     <canvas id="canvas" resize></canvas>
-    <div id="inspector">
+    <!-- <div id="inspector">
       <ul>
         <li>
           <label for="statename">Name </label>
@@ -24,11 +24,11 @@
         <li><span id="el_progress">0</span> <span id="el_elapsed">0</span> </li>
         <li><button type="button" name="delete">delete</button></li>
       </ul>
-    </div>
+    </div> -->
   </body>
   <footer>
     <script src="js/paper-full.min.js" type="text/javascript"></script>
-    <script src="js/objects.js?v=<?=filemtime('js/objects.js')?>" type="text/javascript" canvas="canvas"></script>
+    <script src="js/automata.js?v=<?=filemtime('js/objects.js')?>" type="text/javascript" canvas="canvas"></script>
     <script src="js/automatapaper.js?v=<?=filemtime('js/automatapaper.js')?>" type="text/javascript"  canvas="canvas"></script>
     <script src="js/index.js?v=<?=filemtime('js/index.js')?>" type="text/javascript"></script>
   </footer>
