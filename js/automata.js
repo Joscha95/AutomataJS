@@ -257,6 +257,8 @@ class Automata{
     this.changed = false;
     this.onChanged = () => {};
 
+    this.onLoaded = [];
+
     this.onStateChanged = () => {};
 
     if(!this.isEditor) return;
@@ -347,6 +349,7 @@ class Automata{
 
     this.setState(this.states[0]);
 
+    this.onLoaded.forEach(func => func());
   }
 
   setUpInteractions(){
